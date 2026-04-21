@@ -42,8 +42,15 @@ int main() {
         printf("Parent process!\n");
     }
 
+    printf("4. Attempting to call clone()...\n");
+    long clone_res = syscall(SYS_clone, 0, 0, 0, 0, 0);
+    
+    if (clone_res == -1) {
+        perror("-> clone call result");
+    }
+
     // Demonstration that other system calls (e.g., write inside printf) are working
-    printf("4. Demonstration: program continues execution after blocked system call.\n");
+    printf("5. Demonstration: program continues execution after blocked system call.\n");
 
     return 0;
 }
