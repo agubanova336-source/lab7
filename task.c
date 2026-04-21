@@ -4,46 +4,46 @@
 #include <errno.h>
 
 int main() {
-    printf("1. Инициализация seccomp...\n");
+    printf("1. Initializing seccomp...\n");
 
-    // Создаем контекст фильтра: по умолчанию РАЗРЕШАЕМ все системные вызовы
+    // Create filter context: ALLOW all system calls by default
     scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_ALLOW);
     if (ctx == NULL) {
-        perror("Ошибка seccomp_init");
+        perror("seccomp_init error");
         return 1;
     }
 
-    // Добавляем правила: ЗАПРЕЩАЕМ вызовы fork и clone.
-    // SCMP_ACT_ERRNO(EPERM) вернет процессу ошибку "Operation not permitted" вместо аварийного завершения.
+    // Add rules: DENY fork and clone calls.
+    // SCMP_ACT_ERRNO(EPERM) will return "Operation not permitted" error to the process instead of terminating it.
     seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EPERM), SCMP_SYS(fork), 0);
     seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EPERM), SCMP_SYS(clone), 0);
 
-    // Применяем фильтр к текущему процессу
+    // Apply filter to the current process
     if (seccomp_load(ctx) < 0) {
-        perror("Ошибка seccomp_load");
+        perror("seccomp_load error");
         seccomp_release(ctx);
         return 1;
     }
     seccomp_release(ctx);
 
-    printf("2. Фильтры seccomp успешно применены.\n");
-    printf("3. Делаем попытку вызова fork()...\n");
+    printf("2. seccomp filters applied successfully.\n");
+    printf("3. Attempting to call fork()...\n");
 
-    // Пытаемся вызвать заблокированный fork
+    // Attempting to call blocked fork
     pid_t pid = fork();
 
     if (pid == -1) {
-        // Если seccomp отработал верно, fork вернет -1
-        perror("-> Результат вызова fork");
+        // If seccomp worked correctly, fork will return -1
+        perror("-> fork call result");
     } else if (pid == 0) {
-        printf("Дочерний процесс!\n");
+        printf("Child process!\n");
         return 0;
     } else {
-        printf("Родительский процесс!\n");
+        printf("Parent process!\n");
     }
 
-    // Демонстрация того, что остальные системные вызовы (например, write внутри printf) работают
-    printf("4. Демонстрация: программа продолжает работу после заблокированного системного вызова.\n");
+    // Demonstration that other system calls (e.g., write inside printf) are working
+    printf("4. Demonstration: program continues execution after blocked system call.\n");
 
     return 0;
 }
