@@ -2,6 +2,7 @@
 #include <seccomp.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/syscall.h>
 
 int main() {
     printf("1. Initializing seccomp...\n");
